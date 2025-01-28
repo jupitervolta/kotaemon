@@ -1,3 +1,6 @@
+[!WARNING]
+This is a public repository because it is a fork of a public repository. No proprietary information should be in this repo. Instead place proprietary information in the [jvolta-information-system](https://github.com/jupitervolta/jvolta-information-system) repo and import it into this one.
+
 <div align="center">
 
 # kotaemon
