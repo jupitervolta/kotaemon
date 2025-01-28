@@ -91,7 +91,7 @@ documents and developers who want to build their own RAG pipeline.
 2. [Docker](https://www.docker.com/): optional, if you [install with Docker](#with-docker-recommended)
 3. [Unstructured](https://docs.unstructured.io/open-source/installation/full-installation#full-installation) if you want to process files other than `.pdf`, `.html`, `.mhtml`, and `.xlsx` documents. Installation steps differ depending on your operating system. Please visit the link and follow the specific instructions provided there.
 
-### With Docker (recommended)
+### With Docker (not for jvolta)
 
 1. We support both `lite` & `full` version of Docker images. With `full`, the extra packages of `unstructured` will be installed as well, it can support additional file types (`.doc`, `.docx`, ...) but the cost is larger docker image size. For most users, the `lite` image should work well in most cases.
 
@@ -134,7 +134,7 @@ documents and developers who want to build their own RAG pipeline.
 
 4. We use [GHCR](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry) to store docker images, all images can be found [here.](https://github.com/Cinnamon/kotaemon/pkgs/container/kotaemon)
 
-### Without Docker
+### Without Docker (for jvolta)
 
 1. Clone and install required packages on a fresh python environment.
 
@@ -144,8 +144,14 @@ documents and developers who want to build their own RAG pipeline.
    conda activate kotaemon
 
    # clone this repo
-   git clone https://github.com/Cinnamon/kotaemon
+   git clone https://github.com/jupitervolta/kotaemon
    cd kotaemon
+
+   # Install unstructured: Couldn't get this to work on windows.
+   pip install libmagic
+   # pip install python-poppler # Install fails
+   # Install LibreOffice: Do you just install the application?
+   # Install tessoract from https://github.com/UB-Mannheim/tesseract/wiki
 
    pip install -e "libs/kotaemon[all]"
    pip install -e "libs/ktem"

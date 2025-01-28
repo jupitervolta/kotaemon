@@ -16,9 +16,12 @@ app = App()
 demo = app.make()
 demo.queue().launch(
     favicon_path=app._favicon,
-    inbrowser=True,
+    # inbrowser=True,
     allowed_paths=[
         "libs/ktem/ktem/assets",
         GRADIO_TEMP_DIR,
     ],
+    server_name="127.0.0.1",
+    server_port=8082,
+    root_path="/jvis",
 )
