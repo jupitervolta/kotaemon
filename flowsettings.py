@@ -7,6 +7,8 @@ from decouple import config
 from ktem.utils.lang import SUPPORTED_LANGUAGE_MAP
 from theflow.settings.default import *  # noqa
 
+KH_APP_NAME="JVIS (Jupiter Volta Information System)"
+
 cur_frame = currentframe()
 if cur_frame is None:
     raise ValueError("Cannot get the current frame.")
