@@ -1,39 +1,30 @@
+from datetime import datetime
+from pathlib import Path
 from typing import Generator
 
+from decouple import config
 import gradio as gr
+from jvis.zotero.manager import ZoteroManager
 from theflow.settings import settings as flowsettings
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+from ktem.db.engine import engine
 
 from ..ui import FileIndexPage
-
-chat_input_focus_js = """
-function() {
-    let chatInput = document.querySelector("#chat-input textarea");
-    chatInput.focus();
-}
-"""
 
 
 class ZoteroIndexPage(FileIndexPage):
     def __init__(self, app, index):
         # Initialize our own attributes before calling parent's init
-        self._last_sync_time = None
         self._index = index
+        self._zotero_manager = ZoteroManager(
+            api_key=config("ZOTERO_API_KEY", None),
+            library_id=config("ZOTERO_LIBRARY_ID", None),
+        )
         
         # Then call parent's init
         # This will call on_building_ui
         super().__init__(app, index)
-
-    def action_instruction(self) -> str:
-        msgs = []
-
-        msgs.append("### Sync with Zotero")
-        last_sync_time = "Never" if self._last_sync_time is None else self._last_sync_time
-        msgs.append(f"- Last sync time: {last_sync_time}")
-
-        if msgs:
-            return "\n".join(msgs)
-
-        return ""
 
     def on_building_ui(self):
         """Build the UI of the app"""
@@ -41,20 +32,38 @@ class ZoteroIndexPage(FileIndexPage):
             with gr.Column(scale=1):
                 with gr.Column() as self.upload:
                     with gr.Tab("Actions"):
-                        msg = self.action_instruction()
-                        if msg:
-                            gr.Markdown(msg)
+                        self.sync_last_time = gr.State(None)
+
+                        gr.Markdown("### Sync with Zotero")
+                        self.sync_last_time_display = gr.Markdown(
+                            "- Last sync time: Never"
+                        )
 
                         self.sync_button = gr.Button(
                             "Sync with Zotero", variant="primary"
                         )
 
                         self.reindex_button = gr.Button(
-                            "Reindex Selected File", variant="secondary"
+                            "Reindex Selected File", variant="secondary", interactive=False
                         )
 
 
             with gr.Column(scale=4):
+                with gr.Column(visible=False) as self.sync_progress_panel:
+                    gr.Markdown("## Sync Progress")
+                    with gr.Row():
+                        self.sync_result = gr.Textbox(
+                            lines=1, max_lines=20, label="Sync result"
+                        )
+                        self.sync_info = gr.Textbox(
+                            lines=1, max_lines=20, label="Sync info"
+                        )
+                    self.btn_close_sync_progress_panel = gr.Button(
+                        "Clear Sync Info and Close",
+                        variant="secondary",
+                        elem_classes=["right-button"],
+                    )
+
                 with gr.Tab("Files"):
                     self.render_file_list()
 
@@ -103,6 +112,11 @@ class ZoteroIndexPage(FileIndexPage):
             inputs=[self.is_zipped_state, self.selected_file_id],
             outputs=[self.is_zipped_state, self.download_single_button],
             show_progress="hidden",
+        )
+
+        self.btn_close_sync_progress_panel.click(
+            fn=lambda: (gr.update(visible=False), "", ""),
+            outputs=[self.sync_progress_panel, self.sync_result, self.sync_info],
         )
 
         self.file_list.select(
@@ -223,43 +237,81 @@ class ZoteroIndexPage(FileIndexPage):
             onGroupDeleted = onGroupDeleted.then(**event)
             onGroupSaved = onGroupSaved.then(**event)
 
+        self.sync_button.click(
+            fn=lambda: gr.update(interactive=False),
+            outputs=[self.sync_button],
+        ).then(
+            fn=lambda: gr.update(visible=True),
+            outputs=[self.sync_progress_panel],
+        ).then(
+            fn=self.sync_with_zotero,
+            inputs=[self._app.settings_state],
+            outputs=[self.sync_result, self.sync_info, self.sync_last_time, self.sync_last_time_display],
+            concurrency_limit=1,
+        ).then(
+            fn=lambda: gr.update(interactive=True),
+            outputs=[self.sync_button],
+        )
+
+        self.reindex_button.click(
+            fn=self.reindex_file,
+            inputs=[self.selected_file_id],
+            outputs=[],
+        )
+
+    def sync_with_zotero(self, settings):
+        """Sync with Zotero"""
+        gr.Info(f"Starting synchronization with Zotero...")
+
+        index_fn = lambda file: self.index_fn(file, True, settings)
+        cum_result, cum_info = [], []
+        _iter = self._zotero_manager.sync(engine, index_fn)
+        for result, info in _iter:
+            cum_result.append(result)
+            cum_info.append(info)
+            yield "\n".join(cum_result), "\n".join(cum_info), None, None
+
+        cum_info.append("Sync completed")
+        current_time = datetime.now()
+        yield (
+            "\n".join(cum_result),
+            "\n".join(cum_info),
+            current_time,
+            f"- Last sync time: {current_time.strftime('%Y-%m-%d %H:%M:%S')}",
+        )
+
+    def reindex_file(self, file_id):
+        """Reindex the selected file"""
+        gr.Info(f"Starting to reindex file...")
+        with Session(engine) as session:
+            source = session.execute(
+                select(self._index._resources["Source"]).where(
+                    self._index._resources["Source"].id == file_id
+                )
+            ).first()
+
     def index_fn(
-        self, files, urls, reindex: bool, settings, user_id
-    ) -> Generator[tuple[str, str], None, None]:
-        """Upload and index the files
+        self, file: Path, reindex: bool, settings
+    ) -> Generator[tuple[str, str], None, None | list[str]]:
+        """Index the file
 
         Args:
-            files: the list of files to be uploaded
-            urls: list of web URLs to be indexed
+            file: path to the file to be indexed
             reindex: whether to reindex the files
-            selected_files: the list of files already selected
             settings: the settings of the app
         """
-        if urls:
-            files = [it.strip() for it in urls.split("\n")]
-            errors = []
-        else:
-            if not files:
-                gr.Info("No uploaded file")
-                yield "", ""
-                return
+        errors = self.validate([file])
+        if errors:
+            gr.Warning(", ".join(errors))
+            yield "", ""
+            return
 
-            files = self._may_extract_zip(files, flowsettings.KH_ZIP_INPUT_DIR)
-
-            errors = self.validate(files)
-            if errors:
-                gr.Warning(", ".join(errors))
-                yield "", ""
-                return
-
-        gr.Info(f"Start indexing {len(files)} files...")
-
-        # get the pipeline
-        indexing_pipeline = self._index.get_indexing_pipeline(settings, user_id)
+        # get the pipeline: UserID = 1 (admin)
+        indexing_pipeline = self._index.get_indexing_pipeline(settings, 1)
 
         outputs, debugs = [], []
         # stream the output
-        output_stream = indexing_pipeline.stream(files, reindex=reindex)
+        output_stream = indexing_pipeline.stream([file], reindex=reindex)
         try:
             while True:
                 response = next(output_stream)
