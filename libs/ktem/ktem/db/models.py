@@ -1,3 +1,4 @@
+from jvis.zotero.db import ZoteroItems
 import ktem.db.base_models as base_models
 from ktem.db.engine import engine
 from sqlmodel import SQLModel
