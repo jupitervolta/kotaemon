@@ -20,7 +20,7 @@ class ZoteroIndexPage(FileIndexPage):
         self._zotero_manager = ZoteroManager(
             api_key=config("ZOTERO_API_KEY", None),
             library_id=config("ZOTERO_LIBRARY_ID", None),
-            tag_name=config("ZOTERO_TAG_NAME", None),
+            tag=config("ZOTERO_TAG_NAME", None),
         )
         
         # Then call parent's init
