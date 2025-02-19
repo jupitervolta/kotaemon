@@ -2,6 +2,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Generator
 
+from apscheduler.schedulers.background import BackgroundScheduler
 from decouple import config
 import gradio as gr
 from jvis.zotero.db import ZoteroSyncs
@@ -27,6 +28,14 @@ class ZoteroIndexPage(FileIndexPage):
         # Then call parent's init
         # This will call on_building_ui
         super().__init__(app, index)
+
+        # self.scheduler = BackgroundScheduler()
+        # self.scheduler.add_job(
+        #     func=self.sync_with_zotero,
+        #     trigger="interval",
+        #     seconds=config("ZOTERO_SYNC_INTERVAL", 5 * 60)
+        # )
+        # self.scheduler.start()
 
     def on_building_ui(self):
         """Build the UI of the app"""
@@ -247,7 +256,7 @@ class ZoteroIndexPage(FileIndexPage):
             onGroupDeleted = onGroupDeleted.then(**event)
             onGroupSaved = onGroupSaved.then(**event)
 
-        self.sync_button.click(
+        onSynced = self.sync_button.click(
             fn=lambda: gr.update(interactive=False),
             outputs=[self.sync_button],
         ).then(
@@ -262,6 +271,15 @@ class ZoteroIndexPage(FileIndexPage):
             fn=lambda: gr.update(interactive=True),
             outputs=[self.sync_button],
         )
+
+        syncedEvent = onSynced.then(
+            fn=self.list_file,
+            inputs=[self._app.user_id, self.filter],
+            outputs=[self.file_list_state, self.file_list],
+            concurrency_limit=20,
+        )
+        for event in self._app.get_event(f"onFileIndex{self._index.id}Changed"):
+            syncedEvent = syncedEvent.then(**event)
 
         self.reindex_button.click(
             fn=self.reindex_file,
