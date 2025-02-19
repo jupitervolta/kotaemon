@@ -12,7 +12,7 @@ from ktem.db.engine import engine
 class ZoteroManager:
     def __init__(self, app):
         self._app = app
-        self.zotero_manager = _ZoteroManager(
+        self._zotero_manager = _ZoteroManager(
             api_key=config("ZOTERO_API_KEY", None),
             library_id=config("ZOTERO_LIBRARY_ID", None),
             tag=config("ZOTERO_TAG_NAME", None),
@@ -27,26 +27,18 @@ class ZoteroManager:
         self._index = indexes[0]
 
     def sync(self):
-        print("Syncing Zotero")
+        print("Syncing Zotero...")
+        settings = self._app.default_settings.flatten()
+        for i, (result, info) in enumerate(self.sync_with_zotero(settings)):
+            print(f"{i} result: {result}")
+            print(f"{i} info: {info}")
+        print("Syncing Zotero completed")
 
-    def sync_with_zotero(self, settings):
+    def sync_with_zotero(self, settings) -> Generator[tuple[str, str], None, None]:
         """Sync with Zotero"""
         index_fn = lambda file: self.index_fn(file, True, settings)
-        cum_result, cum_info = [], []
-        _iter = self._zotero_manager.sync(engine, index_fn)
-        for result, info in _iter:
-            cum_result.append(result)
-            cum_info.append(info)
-            yield "\n".join(cum_result), "\n".join(cum_info), None, None
-
-        cum_info.append("Sync completed")
-        current_time = datetime.now()
-        yield (
-            "\n".join(cum_result),
-            "\n".join(cum_info),
-            current_time,
-            f"- Last sync time: {current_time.strftime('%Y-%m-%d %H:%M:%S')}",
-        )
+        yield from self._zotero_manager.sync(engine, index_fn)
+        yield "", "Sync completed"
 
     def index_fn(
         self, file: Path, reindex: bool, settings
