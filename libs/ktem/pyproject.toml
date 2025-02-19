@@ -19,6 +19,7 @@ dynamic = ["version"]
 requires-python = ">= 3.10"
 description = "RAG-based Question and Answering Application"
 dependencies = [
+    "APScheduler>=3.11.0,<4",
     "click>=8.1.7,<9",
     "platformdirs>=4.2.1,<5",
     "pluggy>=1.5.0,<2",
@@ -30,7 +31,7 @@ dependencies = [
     "python-multipart==0.0.12", # required for gradio, pinning to avoid yanking issues with micropip (fixed in gradio >= 5.4.0)
     "markdown>=3.6,<4",
     "tzlocal>=5.0",
-    "jvolta-information-system @ git+https://github.com/jupitervolta/jvolta-information-system.git@cookiecutter",
+    "jvolta-information-system @ git+https://github.com/jupitervolta/jvolta-information-system.git",
 ]
 authors = [
     { name = "@trducng", email = "john@cinnamon.is" },

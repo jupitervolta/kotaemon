@@ -1,6 +1,8 @@
+from apscheduler.schedulers.background import BackgroundScheduler
 import gradio as gr
 from decouple import config
 from ktem.app import BaseApp
+from ktem.index.file.zotero.manager import ZoteroManager
 from ktem.pages.chat import ChatPage
 from ktem.pages.help import HelpPage
 from ktem.pages.resources import ResourcesTab
@@ -37,6 +39,29 @@ class App(BaseApp):
         - Subscribe public events
         - Register events
     """
+    def setup_background_tasks(self):
+        """Start the background tasks"""
+        self.zotero_manager = ZoteroManager(app=self)
+        self.scheduler = BackgroundScheduler()
+        self.scheduler.add_job(
+            func=self.zotero_manager.sync,
+            trigger="interval",
+            seconds=config(
+                "SYNC_ZOTERO_INTERVAL_IN_SECONDS",
+                5 * 60, # default to 5 minutes
+                cast=int
+            )
+        )
+        self.scheduler.start()
+
+    def start_background_tasks(self):
+        """Start the background tasks"""
+        global KH_APP_DATA_EXISTS
+        if KH_APP_DATA_EXISTS:
+            print("Starting background tasks")
+            self.setup_background_tasks()
+        else:
+            print("App data does not exist, skipping background tasks")
 
     def ui(self):
         """Render the UI"""
@@ -196,12 +221,22 @@ class App(BaseApp):
                 },
             )
 
+            self.subscribe_event(
+                name="onFirstSetupComplete",
+                definition={
+                    "fn": self.start_background_tasks,
+                    "inputs": [],
+                    "outputs": [],
+                    "show_progress": "hidden",
+                },
+            )
+
     def _on_app_created(self):
         """Called when the app is created"""
-
         if KH_ENABLE_FIRST_SETUP:
             self.app.load(
                 toggle_first_setup_visibility,
                 inputs=[],
                 outputs=[self.setup_page_wrapper, self.tabs],
             )
+        self.start_background_tasks()
