@@ -1,4 +1,4 @@
-from jvis.zotero.db import ZoteroItems
+from jvis.zotero.db import ZoteroItems, ZoteroSyncs
 import ktem.db.base_models as base_models
 from ktem.db.engine import engine
 from sqlmodel import SQLModel

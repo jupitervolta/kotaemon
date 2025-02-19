@@ -4,6 +4,7 @@ from typing import Generator
 
 from decouple import config
 import gradio as gr
+from jvis.zotero.db import ZoteroSyncs
 from jvis.zotero.manager import ZoteroManager
 from theflow.settings import settings as flowsettings
 from sqlalchemy import select
@@ -29,15 +30,23 @@ class ZoteroIndexPage(FileIndexPage):
 
     def on_building_ui(self):
         """Build the UI of the app"""
+        with Session(engine) as session:
+            last_sync = session.execute(
+                select(ZoteroSyncs.sync_finished_at)
+                .where(ZoteroSyncs.sync_finished_at.is_not(None))
+                .order_by(ZoteroSyncs.sync_finished_at.desc())
+                .limit(1)
+            ).scalar()
+
         with gr.Row():
             with gr.Column(scale=1):
                 with gr.Column() as self.upload:
                     with gr.Tab("Actions"):
-                        self.sync_last_time = gr.State(None)
+                        self.sync_last_time = gr.State(last_sync)
 
                         gr.Markdown("### Sync with Zotero")
                         self.sync_last_time_display = gr.Markdown(
-                            "- Last sync time: Never"
+                            "- Last sync time: Never" if last_sync is None else f"- Last sync time: {last_sync.strftime('%Y-%m-%d %H:%M:%S')}"
                         )
 
                         self.sync_button = gr.Button(
