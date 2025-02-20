@@ -150,12 +150,6 @@ documents and developers who want to build their own RAG pipeline.
    git clone https://github.com/jupitervolta/kotaemon
    cd kotaemon
 
-   # Install unstructured: Couldn't get this to work on windows.
-   pip install libmagic
-   # pip install python-poppler # Install fails
-   # Install LibreOffice: Do you just install the application?
-   # Install tessoract from https://github.com/UB-Mannheim/tesseract/wiki
-
    pip install -e "libs/kotaemon[all]"
    pip install -e "libs/ktem"
    ```
