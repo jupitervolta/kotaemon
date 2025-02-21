@@ -1,3 +1,6 @@
+import logging
+import sys
+
 from apscheduler.schedulers.background import BackgroundScheduler
 import gradio as gr
 from decouple import config
@@ -17,6 +20,15 @@ KH_APP_DATA_EXISTS = getattr(flowsettings, "KH_APP_DATA_EXISTS", True)
 # override first setup setting
 if config("KH_FIRST_SETUP", default=False, cast=bool):
     KH_APP_DATA_EXISTS = False
+
+
+# Configure logging for APScheduler
+logger = logging.getLogger('apscheduler')
+logger.setLevel(logging.DEBUG)
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+logger.addHandler(handler)
 
 
 def toggle_first_setup_visibility():
@@ -42,7 +54,7 @@ class App(BaseApp):
     def setup_background_tasks(self):
         """Start the background tasks"""
         self.zotero_manager = ZoteroManager(app=self)
-        self.scheduler = BackgroundScheduler()
+        self.scheduler = BackgroundScheduler(logger=logger)
         self.scheduler.add_job(
             func=self.zotero_manager.sync,
             trigger="interval",
