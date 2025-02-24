@@ -1,4 +1,5 @@
 from jvis.zotero.db import ZoteroItems, ZoteroSyncs
+from jvis.google.db import GoogleItems, GoogleSyncs
 import ktem.db.base_models as base_models
 from ktem.db.engine import engine
 from sqlmodel import SQLModel

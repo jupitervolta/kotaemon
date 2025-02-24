@@ -355,7 +355,19 @@ KH_INDICES = [
         },
         "index_type": "ktem.index.file.FileIndex",
     },
+    {
+        "name": "Google Collection",
+        "config": {
+            "supported_file_types": (
+                ".png, .jpeg, .jpg, .tiff, .tif, .pdf, .xls, .xlsx, .doc, .docx, "
+                ".pptx, .csv, .html, .mhtml, .txt, .md, .zip"
+            ),
+            "private": False,
+        },
+        "index_type": "ktem.index.file.FileIndex",
+    },
     *GRAPHRAG_INDICES,
 ]
 
 FILE_INDEX_2_UI = "ktem.index.file.zotero.ui.ZoteroIndexPage"
+FILE_INDEX_3_UI = "ktem.index.file.google.ui.GoogleIndexPage"
