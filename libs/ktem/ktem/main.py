@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -6,6 +7,7 @@ import gradio as gr
 from decouple import config
 from ktem.app import BaseApp
 from ktem.index.file.zotero.manager import ZoteroManager
+from ktem.index.file.google.manager import GoogleManager
 from ktem.pages.chat import ChatPage
 from ktem.pages.help import HelpPage
 from ktem.pages.resources import ResourcesTab
@@ -20,6 +22,9 @@ KH_APP_DATA_EXISTS = getattr(flowsettings, "KH_APP_DATA_EXISTS", True)
 # override first setup setting
 if config("KH_FIRST_SETUP", default=False, cast=bool):
     KH_APP_DATA_EXISTS = False
+
+if config("GOOGLE_APPLICATION_CREDENTIALS", default=None):
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config("GOOGLE_APPLICATION_CREDENTIALS")
 
 
 # Configure logging for APScheduler
@@ -54,12 +59,22 @@ class App(BaseApp):
     def setup_background_tasks(self):
         """Start the background tasks"""
         self.zotero_manager = ZoteroManager(app=self)
+        self.google_manager = GoogleManager(app=self)
         self.scheduler = BackgroundScheduler(logger=logger)
         self.scheduler.add_job(
             func=self.zotero_manager.sync,
             trigger="interval",
             seconds=config(
                 "SYNC_ZOTERO_INTERVAL_IN_SECONDS",
+                5 * 60, # default to 5 minutes
+                cast=int
+            )
+        )
+        self.scheduler.add_job(
+            func=self.google_manager.sync,
+            trigger="interval",
+            seconds=config(
+                "SYNC_GOOGLE_INTERVAL_IN_SECONDS",
                 5 * 60, # default to 5 minutes
                 cast=int
             )
