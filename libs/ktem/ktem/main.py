@@ -63,20 +63,18 @@ class App(BaseApp):
         self.scheduler = BackgroundScheduler(logger=logger)
         self.scheduler.add_job(
             func=self.zotero_manager.sync,
-            trigger="interval",
-            seconds=config(
-                "SYNC_ZOTERO_INTERVAL_IN_SECONDS",
-                5 * 60, # default to 5 minutes
-                cast=int
+            trigger="cron",
+            minute=config(
+                "SYNC_ZOTERO_CRON_MINUTE",
+                "0,30",
             )
         )
         self.scheduler.add_job(
             func=self.google_manager.sync,
-            trigger="interval",
-            seconds=config(
-                "SYNC_GOOGLE_INTERVAL_IN_SECONDS",
-                5 * 60, # default to 5 minutes
-                cast=int
+            trigger="cron",
+            minute=config(
+                "SYNC_GOOGLE_CRON_MINUTE",
+                "15,45",
             )
         )
         self.scheduler.start()
