@@ -11,8 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from ktem.db.engine import engine
 
-from ..ui import FileIndexPage
-from ..index import FileSelector
+from ..ui import FileIndexPage, FileSelector
 
 
 class GoogleIndexPage(FileIndexPage):
