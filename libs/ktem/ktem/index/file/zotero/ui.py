@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from ktem.db.engine import engine
 
 from ..ui import FileIndexPage
+from ..index import FileSelector
 
 
 class ZoteroIndexPage(FileIndexPage):
@@ -362,3 +363,15 @@ class ZoteroIndexPage(FileIndexPage):
             gr.Warning(f"Have errors for {n_errors} files")
 
         return results
+
+
+class ZoteroFileSelector(FileSelector):
+    """File selector UI in the Chat page"""
+
+    def __init__(self, app, index):
+        super().__init__(app, index)
+
+    def default(self):
+        if self._app.f_user_management:
+            return "all", [], -1
+        return "all", [], 1

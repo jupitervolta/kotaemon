@@ -370,4 +370,6 @@ KH_INDICES = [
 ]
 
 FILE_INDEX_2_UI = "ktem.index.file.zotero.ui.ZoteroIndexPage"
+FILE_INDEX_2_SELECTOR_UI = "ktem.index.file.zotero.ui.ZoteroFileSelector"
 FILE_INDEX_3_UI = "ktem.index.file.google.ui.GoogleIndexPage"
+FILE_INDEX_3_SELECTOR_UI = "ktem.index.file.google.ui.GoogleFileSelector"
