@@ -30,14 +30,7 @@ class ZoteroIndexPage(FileIndexPage):
 
     def on_building_ui(self):
         """Build the UI of the app"""
-        with Session(engine) as session:
-            last_sync = session.execute(
-                select(ZoteroSyncs.sync_finished_at)
-                .where(ZoteroSyncs.sync_finished_at.is_not(None))
-                .order_by(ZoteroSyncs.sync_finished_at.desc())
-                .limit(1)
-            ).scalar()
-
+        last_sync = self._get_last_sync_time()
         with gr.Row():
             with gr.Column(scale=1):
                 with gr.Column() as self.upload:
@@ -362,6 +355,29 @@ class ZoteroIndexPage(FileIndexPage):
             gr.Warning(f"Have errors for {n_errors} files")
 
         return results
+
+    def _on_app_created(self):
+        super()._on_app_created()
+        self._app.app.load(
+            self._update_last_sync_state,
+            inputs=[],
+            outputs=[self.sync_last_time, self.sync_last_time_display],
+        )
+
+    def _get_last_sync_time(self):
+        with Session(engine) as session:
+            last_sync = session.execute(
+                select(ZoteroSyncs.sync_finished_at)
+                .where(ZoteroSyncs.sync_finished_at.is_not(None))
+                .order_by(ZoteroSyncs.sync_finished_at.desc())
+                .limit(1)
+            ).scalar()
+        return last_sync
+
+    def _update_last_sync_state(self):
+        last_sync = self._get_last_sync_time()
+        sync_last_time_display = f"- Last sync time: {last_sync.strftime('%Y-%m-%d %H:%M:%S')}" if last_sync else "- Last sync time: Never"
+        return last_sync, sync_last_time_display
 
 
 class ZoteroFileSelector(FileSelector):
