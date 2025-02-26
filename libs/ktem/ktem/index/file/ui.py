@@ -1446,6 +1446,7 @@ class FileSelector(BasePage):
     def on_building_ui(self):
         default_mode, default_selector, user_id = self.default()
 
+        self.deselect_btn = gr.Button("Deselect All")
         self.mode = gr.Radio(
             value=default_mode,
             choices=[
@@ -1470,6 +1471,11 @@ class FileSelector(BasePage):
         )
 
     def on_register_events(self):
+        self.deselect_btn.click(
+            fn=lambda: [gr.update(value="disabled"), gr.update(value=[])],
+            inputs=[],
+            outputs=[self.mode,self.selector],
+        )
         self.mode.change(
             fn=lambda mode, user_id: (gr.update(visible=mode == "select"), user_id),
             inputs=[self.mode, self._app.user_id],
