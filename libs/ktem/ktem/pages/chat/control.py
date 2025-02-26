@@ -88,7 +88,7 @@ class ConversationControl(BasePage):
         with gr.Row() as self._new_delete:
             self.cb_is_public = gr.Checkbox(
                 value=False,
-                label="Shared",
+                label="JVolta Public",
                 min_width=10,
                 scale=4,
                 elem_id="is-public-checkbox",
