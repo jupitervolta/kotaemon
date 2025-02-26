@@ -612,6 +612,14 @@ class ChatPage(BasePage):
             ]
             + self._indices_input,
             outputs=None,
+        ).then(
+            self.report_issue._reset_report_state,
+            inputs=None,
+            outputs=[
+                self.report_issue.correctness,
+                self.report_issue.issues,
+                self.report_issue.more_detail,
+            ],
         )
         self.reasoning_type.change(
             self.reasoning_changed,

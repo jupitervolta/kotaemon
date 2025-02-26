@@ -41,6 +41,9 @@ class ReportIssue(BasePage):
             )
             self.report_btn = gr.Button("Report")
 
+    def _reset_report_state(self):
+        return None, None, None # correctness, issues, more_detail
+
     def report(
         self,
         correctness: str,
