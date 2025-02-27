@@ -57,7 +57,7 @@ function() {
 
 info_panel_collapse_js = """
 function() {
-    document.querySelectorAll("#html-info-panel details").forEach(d => d.setAttribute("open", false));
+    document.querySelectorAll("#html-info-panel details").forEach(d => d.removeAttribute("open"));
 }
 """
 
