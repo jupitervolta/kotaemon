@@ -48,6 +48,19 @@ ASSETS_DIR = "assets/icons"
 if not os.path.isdir(ASSETS_DIR):
     ASSETS_DIR = "libs/ktem/ktem/assets/icons"
 
+
+info_panel_expand_js = """
+function() {
+    document.querySelectorAll("#html-info-panel details").forEach(d => d.setAttribute("open", true));
+}
+"""
+
+info_panel_collapse_js = """
+function() {
+    document.querySelectorAll("#html-info-panel details").forEach(d => d.setAttribute("open", false));
+}
+"""
+
 chat_input_focus_js = """
 function() {
     let chatInput = document.querySelector("#chat-input textarea");
@@ -310,22 +323,14 @@ class ChatPage(BasePage):
 
     def on_register_events(self):
         self.expand_info.click(
-            fn=lambda html:
-                html.replace("""<script>.*?</script>""", "") + """<script>
-                    document.querySelectorAll('details').forEach(d => d.setAttribute('open', true));
-                </script>"""
-            ,
-            inputs=[self.info_panel],
-            outputs=[self.info_panel],
+            fn=None,
+            inputs=None,
+            js=info_panel_expand_js,
         )
         self.collapse_info.click(
-            fn=lambda html:
-                html.replace("""<script>.*?</script>""", "") + """<script>
-                    document.querySelectorAll('details').forEach(d => d.setAttribute('open', false));
-                </script>"""
-            ,
-            inputs=[self.info_panel],
-            outputs=[self.info_panel],
+            fn=None,
+            inputs=None,
+            js=info_panel_collapse_js,
         )
 
         self.followup_questions = self.chat_control.chat_suggestion.examples
