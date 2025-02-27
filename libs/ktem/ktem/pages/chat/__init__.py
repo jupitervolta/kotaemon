@@ -312,7 +312,7 @@ class ChatPage(BasePage):
         self.expand_info.click(
             fn=lambda html:
                 html.replace("""<script>.*?</script>""", "") + """<script>
-                    document.querySelectorAll('#html-info-panel details.evidence').forEach(d => d.setAttribute('open', ''));
+                    document.querySelectorAll('details').forEach(d => d.setAttribute('open', true));
                 </script>"""
             ,
             inputs=[self.info_panel],
@@ -321,7 +321,7 @@ class ChatPage(BasePage):
         self.collapse_info.click(
             fn=lambda html:
                 html.replace("""<script>.*?</script>""", "") + """<script>
-                    document.querySelectorAll('#html-info-panel details.evidence').forEach(d => d.removeAttribute('open'));
+                    document.querySelectorAll('details').forEach(d => d.setAttribute('open', false));
                 </script>"""
             ,
             inputs=[self.info_panel],
