@@ -1,6 +1,7 @@
 import asyncio
 import importlib
 import json
+import os
 import re
 from copy import deepcopy
 from typing import Optional
@@ -42,6 +43,10 @@ if KH_WEB_SEARCH_BACKEND:
 
 DEFAULT_SETTING = "(default)"
 INFO_PANEL_SCALES = {True: 8, False: 4}
+
+ASSETS_DIR = "assets/icons"
+if not os.path.isdir(ASSETS_DIR):
+    ASSETS_DIR = "libs/ktem/ktem/assets/icons"
 
 chat_input_focus_js = """
 function() {
@@ -272,6 +277,25 @@ class ChatPage(BasePage):
                 with gr.Accordion(
                     label="Information panel", open=True, elem_id="info-expand"
                 ):
+                    with gr.Row():
+                        gr.Markdown("Expand / Collapse All")
+                        self.expand_info = gr.Button(
+                            value="",
+                            icon=f"{ASSETS_DIR}/toggle-expand.svg",
+                            min_width=2,
+                            scale=1,
+                            size="sm",
+                            elem_classes=["no-background"],
+                        )
+                        self.collapse_info = gr.Button(
+                            value="",
+                            icon=f"{ASSETS_DIR}/toggle-collapse.svg",
+                            min_width=2,
+                            scale=1,
+                            size="sm",
+                            elem_classes=["no-background"],
+                        )
+
                     self.modal = gr.HTML("<div id='pdf-modal'></div>")
                     self.plot_panel = gr.Plot(visible=False)
                     self.info_panel = gr.HTML(elem_id="html-info-panel")
@@ -285,6 +309,25 @@ class ChatPage(BasePage):
         return plot
 
     def on_register_events(self):
+        self.expand_info.click(
+            fn=lambda html:
+                html.replace("""<script>.*?</script>""", "") + """<script>
+                    document.querySelectorAll('#html-info-panel details.evidence').forEach(d => d.setAttribute('open', ''));
+                </script>"""
+            ,
+            inputs=[self.info_panel],
+            outputs=[self.info_panel],
+        )
+        self.collapse_info.click(
+            fn=lambda html:
+                html.replace("""<script>.*?</script>""", "") + """<script>
+                    document.querySelectorAll('#html-info-panel details.evidence').forEach(d => d.removeAttribute('open'));
+                </script>"""
+            ,
+            inputs=[self.info_panel],
+            outputs=[self.info_panel],
+        )
+
         self.followup_questions = self.chat_control.chat_suggestion.examples
         self.followup_questions_ui = self.chat_control.chat_suggestion.accordion
 
