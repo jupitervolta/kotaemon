@@ -1127,28 +1127,6 @@ class ChatPage(BasePage):
 
             chat_state[pipeline.get_info()["id"]] = reasoning_state["pipeline"]
 
-            refs += """
-            <script>
-            // Fetch all the details element.
-            const detailsList = document.querySelectorAll("details");
-
-            // When a details is open, close all other details.
-            function handleDetailToggle(event) {
-              // We are only interested in details being opened.
-              // Also, without the guard below, we'd run into an infinite loop.
-              if (!event.target.open) return;
-              for (let details of detailsList) {
-                details.open = details === event.target;
-              }
-            }
-
-            // Add toggle listeners.
-            for (let details of detailsList) {
-              details.addEventListener("toggle", handleDetailToggle);
-            }
-            </script>
-            """
-
             yield (
                 chat_history + [(chat_input, text or msg_placeholder)],
                 refs,

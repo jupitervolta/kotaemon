@@ -369,6 +369,9 @@ KH_INDICES = [
     *GRAPHRAG_INDICES,
 ]
 
+FILE_INDEX_2_RETRIEVER_PIPELINES = [
+    "ktem.index.file.zotero.pipelines.ZoteroDocumentRetrievalPipeline",
+]
 FILE_INDEX_2_UI = "ktem.index.file.zotero.ui.ZoteroIndexPage"
 FILE_INDEX_2_SELECTOR_UI = "ktem.index.file.zotero.ui.ZoteroFileSelector"
 FILE_INDEX_3_UI = "ktem.index.file.google.ui.GoogleIndexPage"
