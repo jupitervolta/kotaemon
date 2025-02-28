@@ -142,7 +142,11 @@ class Render:
         doc: RetrievedDocument,
         open_collapsible: bool = False,
     ) -> str:
-        header = f"<i>{get_header(doc)}</i>"
+        url = doc.metadata.get("url", None)
+        if url is not None:
+            header = f"<a href='{url}' target='_blank'><i>{get_header(doc)}</i></a>"
+        else:
+            header = f"<i>{get_header(doc)}</i>"
         if doc.metadata.get("type", "") == "image":
             doc_content = Render.image(url=doc.metadata["image_origin"], text=doc.text)
         elif doc.metadata.get("type", "") == "table_raw":
