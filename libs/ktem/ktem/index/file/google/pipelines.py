@@ -4,7 +4,7 @@ from decouple import config
 from sqlalchemy.orm import Session
 
 from kotaemon.base import RetrievedDocument
-from ktem.db.models import engine, GoogleDocs
+from ktem.db.models import engine, GoogleItems
 from ktem.index.file.pipelines import DocumentRetrievalPipeline
 
 
@@ -28,8 +28,8 @@ class GoogleDocumentRetrievalPipeline(DocumentRetrievalPipeline):
         with Session(engine) as session:
             for doc in docs:
                 file_id = doc.metadata["file_id"]
-                item = session.query(GoogleDocs).filter(
-                    GoogleDocs.file_id == file_id
+                item = session.query(GoogleItems).filter(
+                    GoogleItems.file_id == file_id
                 ).first()
                 if item is None:
                     continue
