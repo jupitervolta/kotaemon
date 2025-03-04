@@ -223,8 +223,13 @@ class Render:
         else:
             rendered_doc_content = Render.table(text)
 
+        url = doc.metadata.get("url", None)
+        if url is not None:
+            header_line = f"<a href='{url}' target='_blank'><i>{item_type_prefix}{get_header(doc)}</i></a>"
+        else:
+            header_line = f"<i>{item_type_prefix}{get_header(doc)}</i>"
         rendered_header = Render.preview(
-            f"<i>{item_type_prefix}{get_header(doc)}</i>"
+            header_line,
             f" [score: {llm_reranking_score}]",
             doc,
             highlight_text=highlight_text,
