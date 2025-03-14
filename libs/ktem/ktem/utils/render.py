@@ -229,8 +229,7 @@ class Render:
         else:
             header_line = f"<i>{item_type_prefix}{get_header(doc)}</i>"
         rendered_header = Render.preview(
-            header_line
-            f" [score: {llm_reranking_score}]",
+            header_line + f" [score: {llm_reranking_score}]",
             doc,
             highlight_text=highlight_text,
         )
