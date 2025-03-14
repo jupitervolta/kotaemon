@@ -24,7 +24,7 @@ class MilvusVectorStore(LlamaIndexVectorStore):
 
     def __init__(
         self,
-        uri: str = "./milvus.db",  # or "http://localhost:19530"
+        uri: str = "http://localhost:19530",
         collection_name: str = "default",
         token: Optional[str] = None,
         **kwargs: Any,
