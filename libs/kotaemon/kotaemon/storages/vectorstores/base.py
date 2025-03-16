@@ -131,6 +131,8 @@ class LlamaIndexVectorStore(BaseVectorStore):
                 node.relationships = {
                     NodeRelationship.SOURCE: RelatedNodeInfo(node_id=id)
                 }
+                if "image_origin" in node.metadata:
+                    node.metadata["image_origin"] = "place-holder"
 
         return self._client.add(nodes=nodes)
 
